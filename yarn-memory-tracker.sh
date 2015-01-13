@@ -28,7 +28,24 @@ MEM_GREP_PATTERN="INFO org.apache.hadoop.yarn.server.nodemanager.containermanage
 
 # extract node from $1: 
 
-AWK_PROG=' {
+AWK_PROG='
+    function calc_mem (n, unit) {
+        if (unit == "B") {
+            return n / 1024.0 / 1024.0 / 1024.0;
+        }
+        if (unit == "KB") {
+            return n / 1024.0 / 1024.0;
+        }
+        if (unit == "MB") {
+            return n / 1024.0;
+        }
+        if (unit == "GB") {
+            return n;
+        }
+        print "Found memory unit of neither MB or GB, do not know what to do." > "/dev/stderr";
+        print $0 > "/dev/stderr";
+    }
+    {
     split($1, arr, "[:]");
     node = arr[1];
     date = arr[2];
@@ -42,43 +59,11 @@ AWK_PROG=' {
     pid=$9;
     split($12, arr, ":");
     container = arr[1];
-    p_use = $13;
-    bad=0;
-    if ($14 == "MB") {
-        p_use /= 1024.0;
-    }
-    else if ($14 != "GB") {
-        bad=1;
-    }
-    p_cap = $16;
-    if ($17 == "MB") {
-        p_cap /= 1024.0;
-    }
-    else if ($17 != "GB") {
-        bad=1;
-    }
-    v_use = $21;
-    if ($22 == "MB") {
-        v_use /= 1024.0;
-    }
-    else if ($22 != "GB") {
-        bad=1;
-    }
-    v_cap = $24;
-    if ($25 == "MB") {
-        v_cap /= 1024.0;
-    }
-    else if ($25 != "GB") {
-        bad=1;
-    }
-    if (bad != 0) {
-        print "Found memory unit of neither MB or GB, do not know what to do." > "/dev/stderr";
-        print $0 > "/dev/stderr";
-        exit;
-    }
-    else {
-        print node, date, time, ts, pid, container, p_use, p_cap, v_use, v_cap; 
-    }
+    p_use = calc_mem($13, $14);
+    p_cap = calc_mem($16, $17);
+    v_use = calc_mem($21, $22);
+    v_cap = calc_mem($24, $25);
+    print node, date, time, ts, pid, container, p_use, p_cap, v_use, v_cap; 
 } '
 
 
