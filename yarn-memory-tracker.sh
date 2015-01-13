@@ -66,12 +66,9 @@ AWK_PROG='
     print node, date, time, ts, pid, container, p_use, p_cap, v_use, v_cap; 
 } '
 
-
-APP=$1
-
-if [ -z "$APP" ]
+if [ -z "$1" ]
 then
-    echo "usage:    $0 app-id"
+    echo "usage:    $0 app-id app-id ..."
     exit 1
 fi
 
@@ -100,9 +97,21 @@ fi
 NC=`find $LOG_DIR/ -type d -name "$CONTAINER_PATTERN" | wc -l`
 
 MEMLOG=`mktemp`
-SUM=`mktemp`
 
 grep "$MEM_GREP_PATTERN"  $YARN_LOG_DIR/yarn-*.log | sed 's/0B of/0 GB of/g' | awk "$AWK_PROG" > $MEMLOG
+
+SUM=`mktemp`
+
+while true
+do
+
+APP=$1
+
+shift
+
+if [ -z "$APP" ]; then break; fi
+
+> $SUM
 
 echo $NC containers found for app $APP
 NC=1
@@ -121,6 +130,9 @@ done
 awk 'BEGIN{u=0;c=0;}{u+=$1;c+=$2;}END{print u, c;}' $SUM | while read U C
 do
     echo Total: $U of $C GB.
+done
+
+echo 
 done
 
 rm $MEMLOG
