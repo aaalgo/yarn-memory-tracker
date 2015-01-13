@@ -99,6 +99,12 @@ fi
 
 . $YARN_ENV
 
+if [ -z "$YARN_LOG_DIR" ]
+then
+    YARN_LOG_DIR=$HADOOP_HOME/logs
+fi
+
+
 LOG_DIR=$YARN_LOG_DIR/userlogs/$APP
 
 if [ ! -d $LOG_DIR ]
