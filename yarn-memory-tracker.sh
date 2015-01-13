@@ -102,7 +102,7 @@ NC=`find $LOG_DIR/ -type d -name "$CONTAINER_PATTERN" | wc -l`
 MEMLOG=`mktemp`
 SUM=`mktemp`
 
-grep "$MEM_GREP_PATTERN"  $YARN_LOG_DIR/*.log | sed 's/0B of/0 GB of/g' | awk "$AWK_PROG" > $MEMLOG
+grep "$MEM_GREP_PATTERN"  $YARN_LOG_DIR/yarn-*.log | sed 's/0B of/0 GB of/g' | awk "$AWK_PROG" > $MEMLOG
 
 echo $NC containers found for app $APP
 NC=1
